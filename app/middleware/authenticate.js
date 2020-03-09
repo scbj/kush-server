@@ -1,4 +1,3 @@
-import _ from 'lodash'
 import jwt from 'jsonwebtoken'
 import User from '../models/user'
 import Constants from '../config/constants'
