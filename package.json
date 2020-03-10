@@ -27,7 +27,8 @@
     "lodash.merge": "^4.6.2",
     "method-override": "3.0.0",
     "mongoose": "5.8.3",
-    "morgan": "1.9.1"
+    "morgan": "1.9.1",
+    "socket.io": "^2.3.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.7.7",
