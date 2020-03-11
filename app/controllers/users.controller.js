@@ -51,7 +51,7 @@ class UsersController extends BaseController {
   create = async (req, res, next) => {
     const params = this.filterParams(req.body, this.whitelist)
 
-    let newUser = new User({
+    const newUser = new User({
       ...params,
       provider: 'local'
     })

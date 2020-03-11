@@ -14,8 +14,8 @@ class AuthController extends BaseController {
         return next(err)
       }
 
-      const token = user.generateToken()
-      return res.status(200).json({ token })
+      const accessToken = user.generateToken()
+      return res.status(200).json({ accessToken })
     } catch (err) {
       next(err)
     }
