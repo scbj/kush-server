@@ -1,6 +1,6 @@
 import createSocketIO from 'socket.io'
 
-import { EVENT_PLAYBACK_STATUS_CHANGED } from '@bit/scbj.kush.constants'
+import { ExtensionClient, WebAppClient } from './clients'
 
 function authenticate ({ accessToken }) {
   return {
@@ -11,61 +11,18 @@ function authenticate ({ accessToken }) {
   }
 }
 
-// function az (io) {
-//   const extensions = []
-//   const subscribers = {}
-
-//   const addExtension = (socket, extension) => {
-//     const { name, user } = extension
-//     extensions.push({ name, socket, user })
-//   }
-
-//   const subscribe = ({ socket, extensionId, user }) => {
-//     if (extensionId in subscribers === false) {
-//       subscribers[extensionId] = []
-//     }
-//     subscribers[extensionId].push({
-//       socket,
-//       user
-//     })
-//   }
-// }
-
-function handleAsExtension (extensionId, socket) {
-  console.log('WS: Extension connected')
-  socket.on(EVENT_PLAYBACK_STATUS_CHANGED, data => {
-    socket.broadcast.to(extensionId).emit(EVENT_PLAYBACK_STATUS_CHANGED, data)
-  })
-  socket.on('disconnect', () => {
-    // subscribers[extensionId].forEach(({ socket }) => socket.disconnect(true))
-  })
-}
-
-function handleAsWebApp (socket) {
-  console.log('WS: App connected')
-  socket.on('extension:connect', ({ extensionId }) => {
-    socket.join(extensionId)
-    console.log(`WS: App join ${extensionId}`)
-  })
-}
-
-function handleConnection (io) {
-  const onConnection = socket => {
-    const { error } = authenticate(socket.handshake.query)
-
+function handleConnection (io, clientProvider) {
+  return socket => {
     // Real time needs to authenticate packets otherwise disconnect the socket
+    const { error } = authenticate(socket.handshake.query)
     if (error) return socket.disconnect()
 
-    const { extensionId } = socket.handshake.query
-    if (extensionId) {
-      handleAsExtension(extensionId, socket)
-    } else {
-      handleAsWebApp(socket)
+    const clientType = socket.handshake.query.type || 'app'
+    if (clientType in clientProvider) {
+      const Client = clientProvider[clientType]
+      return new Client(io, socket)
     }
   }
-
-  // Attach connection event
-  io.on('connection', onConnection)
 }
 
 /** Instanciate and start Socket.io on the specified server. */
@@ -74,5 +31,8 @@ export function enableRealTime (server) {
   const io = createSocketIO(server)
 
   // Handle connection from extensions and web apps
-  handleConnection(io)
+  io.on('connection', handleConnection(io, {
+    app: WebAppClient,
+    extension: ExtensionClient
+  }))
 }
