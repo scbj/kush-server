@@ -54,27 +54,31 @@ UserSchema.set('toJSON', {
 // Ensure email has not been taken
 UserSchema
   .path('email')
-  .validate((email, respond) => {
-    UserModel.findOne({ email })
-      .then((user) => {
-        respond(!user)
-      })
-      .catch(() => {
-        respond(false)
-      })
+  .validate(email => {
+    return new Promise(resolve => {
+      UserModel.findOne({ email })
+        .then((user) => {
+          resolve(!user)
+        })
+        .catch(() => {
+          resolve(false)
+        })
+    })
   }, 'Email already in use.')
 
 // Validate username is not taken
 UserSchema
   .path('username')
-  .validate((username, respond) => {
-    UserModel.findOne({ username })
-      .then((user) => {
-        respond(!user)
-      })
-      .catch(() => {
-        respond(false)
-      })
+  .validate(username => {
+    return new Promise(resolve => {
+      UserModel.findOne({ username })
+        .then((user) => {
+          resolve(!user)
+        })
+        .catch(() => {
+          resolve(false)
+        })
+    })
   }, 'Username already taken.')
 
 // Validate password field
@@ -91,6 +95,9 @@ UserSchema
     if (this.isModified('password')) {
       const { saltRounds } = Constants.security
       this._hashPassword(this.password, saltRounds, (err, hash) => {
+        if (err) {
+          console.log("🐞:UserSchema.pre('save')._hashPassword", err)
+        }
         this.password = hash
         done()
       })
