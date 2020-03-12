@@ -4,6 +4,7 @@ import MetaController from './controllers/meta.controller'
 import AuthController from './controllers/auth.controller'
 import UsersController from './controllers/users.controller'
 import PostsController from './controllers/posts.controller'
+import ExtensionController from './controllers/extension.controller'
 
 import authenticate from './middleware/authenticate'
 import accessControl from './middleware/access-control'
@@ -23,6 +24,8 @@ routes.get('/user/me', authenticate, UsersController.fetch)
 routes.put('/user/me', authenticate, UsersController.update)
 routes.delete('/user/me', authenticate, UsersController.delete)
 routes.get('/user/:username', UsersController._populate, UsersController.fetch)
+
+routes.post('/extension', authenticate, ExtensionController.create)
 
 // Post
 routes.get('/posts', PostsController.search)
