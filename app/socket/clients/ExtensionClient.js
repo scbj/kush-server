@@ -14,6 +14,8 @@ export default class {
 
   activateDirectBroadcasting () {
     const { extensionId } = this.socket.handshake.query
+    console.log('🐞: activateDirectBroadcasting -> this.socket.handshake.query', this.socket.handshake.query)
+    console.log('🐞: activateDirectBroadcasting -> extensionId', extensionId)
     const broadcast = event => {
       this.socket.on(event, payload => this.socket.broadcast.to(extensionId).emit(event, payload))
     }

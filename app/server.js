@@ -8,7 +8,7 @@ import morgan from 'morgan'
 
 import routes from './routes'
 import Constants from './config/constants'
-import { enableRealTime } from './socket'
+import { enableRealTime } from './socket/easy'
 
 const app = express()
 const server = http.createServer(app)
