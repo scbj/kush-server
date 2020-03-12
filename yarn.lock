@@ -697,6 +697,11 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
+"@bit/scbj.kush.constants@^0.0.2":
+  version "0.0.2"
+  resolved "https://node.bit.dev/scbj.kush.constants/-/scbj.kush.constants-0.0.2.tgz#5e1d87ffa3f0075fd5a5c621b8adb46ebe165c55"
+  integrity sha1-Xh2H/6PwB1/VpcYhuK20br4WXFU=
+
 abbrev@1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-1.1.1.tgz#f8f2c887ad10bf67f634f005b6987fed3179aac8"

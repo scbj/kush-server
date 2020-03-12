@@ -1,5 +1,7 @@
 import createSocketIO from 'socket.io'
 
+import { EVENT_PLAYBACK_STATUS_CHANGED } from '@bit/scbj.kush.constants'
+
 function authenticate ({ accessToken }) {
   return {
     user: {
@@ -31,8 +33,8 @@ function authenticate ({ accessToken }) {
 
 function handleAsExtension (extensionId, socket) {
   console.log('WS: Extension connected')
-  socket.on('playback:musicChanged', data => {
-    socket.broadcast.to(extensionId).emit('playback:musicChanged', data)
+  socket.on(EVENT_PLAYBACK_STATUS_CHANGED, data => {
+    socket.broadcast.to(extensionId).emit(EVENT_PLAYBACK_STATUS_CHANGED, data)
   })
   socket.on('disconnect', () => {
     // subscribers[extensionId].forEach(({ socket }) => socket.disconnect(true))
