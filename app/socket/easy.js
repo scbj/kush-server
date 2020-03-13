@@ -1,5 +1,4 @@
 import createSocketIO from 'socket.io'
-
 import {
   EVENT_PLAYBACK_STATUS_CHANGED,
   EVENT_PLAYBACK_TRACK_CHANGED,
@@ -9,18 +8,11 @@ import {
   ACTION_PLAYBACK_TOGGLE_STATUS
 } from '@bit/scbj.kush.constants'
 
+import identity from '../services/identity'
+
 let io = null
 
 const extensions = {}
-
-function authenticate ({ accessToken }) {
-  return {
-    user: {
-      name: 'John Doe'
-    }
-    // error: 'An error occured'
-  }
-}
 
 function createExtensionClient (extensionId, { socket }) {
   if (extensionId in extensions) {
@@ -49,7 +41,7 @@ function createExtensionClient (extensionId, { socket }) {
     io.of('/').in(extensionId).clients((error, socketIds) => {
       if (error) throw error
       socketIds.forEach(socketId => {
-        // TODO: Emettre un évenement qui informe de la déconnection d'une extension
+        // TODO: Emit event to the applications of this room
         io.sockets.sockets[socketId].leave(extensionId)
       })
       console.log(`${socketIds.length} applications have left the '${extensionId}' room`)
@@ -85,11 +77,11 @@ function createAppClient ({ socket, join: extensionId }) {
   })
 }
 
-function handleConnection (socket) {
+async function handleConnection (socket) {
   const { accessToken, extensionId, type } = socket.handshake.query
 
   // Real time needs to authenticate packets otherwise disconnect the socket
-  const { error } = authenticate({ accessToken })
+  const { error } = await identity.verify(accessToken)
   if (error || !extensionId) return socket.disconnect()
 
   switch (type) {
