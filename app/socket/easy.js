@@ -22,18 +22,20 @@ function authenticate ({ accessToken }) {
   }
 }
 
-function createExtensionClient (socket) {
-  const { extensionId } = socket.handshake.query
-
+function createExtensionClient (extensionId, { socket }) {
   if (extensionId in extensions) {
-    throw new Error(`extensionId ${extensionId} already exist in extension list`)
+    throw new Error(`extensionId '${extensionId}' already exist in extension list`)
   }
 
   extensions[extensionId] = socket
 
+  console.log(`The '${extensionId}' extension has just connected (total: ${Object.keys(extensions).length})`)
+
   // Quand l'extension envoi au serveur (ici) un message il doit être transmis aux Apps
   const broadcast = event => {
-    socket.on(event, payload => socket.broadcast.to(extensionId).emit(event, payload))
+    const emit = payload =>
+      socket.broadcast.to(extensionId).emit(event, payload)
+    socket.on(event, emit)
   }
   broadcast(EVENT_PLAYBACK_STATUS_CHANGED)
   broadcast(EVENT_PLAYBACK_TRACK_CHANGED)
@@ -43,52 +45,58 @@ function createExtensionClient (socket) {
   // Quand l'extension se déconnecte, il faut enlever tous les autres socket de la room et enlever l'extension
   // de la liste des extensions
   socket.on('disconnect', () => {
+    console.log(`The '${extensionId}' extension has just signed out!`)
     io.of('/').in(extensionId).clients((error, socketIds) => {
       if (error) throw error
       socketIds.forEach(socketId => {
-        console.log('🐞: Force to leave the room -> socketId', socketId)
+        // TODO: Emettre un évenement qui informe de la déconnection d'une extension
         io.sockets.sockets[socketId].leave(extensionId)
       })
+      console.log(`${socketIds.length} applications have left the '${extensionId}' room`)
     })
     socket.disconnect()
     delete extensions[extensionId]
-    console.log('🐞: createExtensionClient -> Object.keys(extensions)', Object.keys(extensions))
   })
 }
 
-function createAppClient (socket) {
-  const joinRoom = ({ extensionId }) => {
-    if (extensionId in extensions) {
-      socket.join(extensionId)
-      const broadcast = event => {
-        socket.on(event, payload => {
-          console.log('🐞: createExtensionClient -> Object.keys(extensions)', Object.keys(extensions))
-          extensions[extensionId].emit(event, payload)
-        })
-      }
-      broadcast(ACTION_PLAYBACK_NEXT)
-      broadcast(ACTION_PLAYBACK_PLAY)
-      broadcast(ACTION_PLAYBACK_PREVIOUS)
-      broadcast(ACTION_PLAYBACK_TOGGLE_STATUS)
-    }
+function createAppClient ({ socket, join: extensionId }) {
+  if (extensionId in extensions === false) {
+    throw new Error(`The requrested extension '${extensionId}' is not connected`)
   }
-  socket.on('extension:connect', joinRoom)
+
+  socket.join(extensionId)
+
+  console.log(`An application has joined the '${extensionId}' room`)
+
+  const broadcast = event => {
+    const emit = payload =>
+      extensions[extensionId].emit(event, payload)
+    socket.on(event, emit)
+  }
+  broadcast(ACTION_PLAYBACK_NEXT)
+  broadcast(ACTION_PLAYBACK_PLAY)
+  broadcast(ACTION_PLAYBACK_PREVIOUS)
+  broadcast(ACTION_PLAYBACK_TOGGLE_STATUS)
+
+  // socket.on('extension:change', joinRoom)
   socket.on('disconnect', () => {
+    console.log('An application has just signed out!')
     socket.disconnect()
   })
 }
 
 function handleConnection (socket) {
-  // Real time needs to authenticate packets otherwise disconnect the socket
-  const { error } = authenticate(socket.handshake.query)
-  if (error) return socket.disconnect()
+  const { accessToken, extensionId, type } = socket.handshake.query
 
-  const clientType = socket.handshake.query.type
-  switch (clientType) {
+  // Real time needs to authenticate packets otherwise disconnect the socket
+  const { error } = authenticate({ accessToken })
+  if (error || !extensionId) return socket.disconnect()
+
+  switch (type) {
     case 'extension':
-      return createExtensionClient(socket)
+      return createExtensionClient(extensionId, { socket })
     default:
-      return createAppClient(socket)
+      return createAppClient({ socket, join: extensionId })
   }
 }
 
