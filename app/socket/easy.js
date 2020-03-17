@@ -1,7 +1,7 @@
 import createSocketIO from 'socket.io'
+import configuration from '@bit/scbj.kush.configuration'
 
 import identity from '../services/identity'
-import configuration from '../configuration.json'
 
 let io = null
 
