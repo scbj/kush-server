@@ -1,14 +1,7 @@
 import createSocketIO from 'socket.io'
-import {
-  EVENT_PLAYBACK_STATUS_CHANGED,
-  EVENT_PLAYBACK_TRACK_CHANGED,
-  ACTION_PLAYBACK_NEXT,
-  ACTION_PLAYBACK_PLAY,
-  ACTION_PLAYBACK_PREVIOUS,
-  ACTION_PLAYBACK_TOGGLE_STATUS
-} from '@bit/scbj.kush.constants'
 
 import identity from '../services/identity'
+import configuration from '../configuration.json'
 
 let io = null
 
@@ -24,13 +17,12 @@ function createExtensionClient (extensionId, { socket }) {
   console.log(`The '${extensionId}' extension has just connected (total: ${Object.keys(extensions).length})`)
 
   // Quand l'extension envoi au serveur (ici) un message il doit être transmis aux Apps
-  const broadcast = event => {
+  const broadcast = ({ emit: eventName }) => {
     const emit = payload =>
-      socket.broadcast.to(extensionId).emit(event, payload)
-    socket.on(event, emit)
+      socket.broadcast.to(extensionId).emit(eventName, payload)
+    socket.on(eventName, emit)
   }
-  broadcast(EVENT_PLAYBACK_STATUS_CHANGED)
-  broadcast(EVENT_PLAYBACK_TRACK_CHANGED)
+  configuration.watchers.forEach(broadcast)
 
   // Lorsque qu'une app envoi un message (action) au serveur (ici), il doit être transmis également au Apps
 
@@ -60,15 +52,12 @@ function createAppClient ({ socket, join: extensionId }) {
 
   console.log(`An application has joined the '${extensionId}' room`)
 
-  const broadcast = event => {
+  const broadcast = ({ trigger: eventName }) => {
     const emit = payload =>
-      extensions[extensionId].emit(event, payload)
-    socket.on(event, emit)
+      extensions[extensionId].emit(eventName, payload)
+    socket.on(eventName, emit)
   }
-  broadcast(ACTION_PLAYBACK_NEXT)
-  broadcast(ACTION_PLAYBACK_PLAY)
-  broadcast(ACTION_PLAYBACK_PREVIOUS)
-  broadcast(ACTION_PLAYBACK_TOGGLE_STATUS)
+  configuration.commands.forEach(broadcast)
 
   // socket.on('extension:change', joinRoom)
   socket.on('disconnect', () => {
