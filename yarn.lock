@@ -697,10 +697,10 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
-"@bit/scbj.kush.configuration@0.0.6":
-  version "0.0.6"
-  resolved "https://node.bit.dev/scbj.kush.configuration/-/scbj.kush.configuration-0.0.6.tgz#66c1a4cccabce27d441969a03655fdc845658754"
-  integrity sha1-ZsGkzMq84n1EGWmgNlX9yEVlh1Q=
+"@bit/scbj.kush.configuration@0.0.7":
+  version "0.0.7"
+  resolved "https://node.bit.dev/scbj.kush.configuration/-/scbj.kush.configuration-0.0.7.tgz#59653db4d0b433bcdab6ea14e364cffee3d71c8b"
+  integrity sha1-WWU9tNC0M7zatuoU42TP/uPXHIs=
 
 abbrev@1:
   version "1.1.1"

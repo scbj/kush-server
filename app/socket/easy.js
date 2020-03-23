@@ -45,7 +45,8 @@ function createExtensionClient (extensionId, { socket }) {
 
 function createAppClient ({ socket, join: extensionId }) {
   if (extensionId in extensions === false) {
-    throw new Error(`The requrested extension '${extensionId}' is not connected`)
+    console.log(`The requrested extension '${extensionId}' is not connected. App disconnected.`)
+    return socket.disconnect()
   }
 
   socket.join(extensionId)
