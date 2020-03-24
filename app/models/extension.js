@@ -10,23 +10,26 @@ const Schema = mongoose.Schema
 const ExtensionSchema = new Schema({
   user_id: {
     type: Schema.Types.ObjectId,
+    ref: 'User',
     required: true
+  },
+  name: {
+    type: String,
+    required: true,
+    trim: true
   },
   ip: {
     type: String,
-    required: true,
     trim: true,
     validate: ipAddress
   },
   os: {
     type: String,
-    required: true,
     trim: true,
     validate: operatingSystem
   },
   navigator: {
     type: String,
-    required: true,
     trim: true,
     maxLength
   }
