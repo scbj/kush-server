@@ -8,13 +8,13 @@ class AuthController extends BaseController {
     try {
       const user = await User.findOne({ username })
 
-      if (!user || !user.authenticate(password)) {
+      if (!user || !await user.authenticate(password)) {
         const err = new Error('Please verify your credentials.')
         err.status = 401
         return next(err)
       }
 
-      const accessToken = user.generateToken()
+      const accessToken = await user.generateToken()
       return res.status(200).json({ accessToken })
     } catch (err) {
       next(err)

@@ -1,12 +1,9 @@
 import User from '../models/user'
-import identity from '../services/identity'
-
-const token = ({ authorization }) => {
-  return authorization.slice(7)
-}
+import security from '../security'
 
 export default async function authenticate (req, res, next) {
-  const { user: decoded, error } = await identity.verify(token(req.headers))
+  const token = req.headers.authorization.slice(7)
+  const { user: decoded, error } = await security.identity.verify(token)
   if (error) {
     return res.sendStatus(401)
   }

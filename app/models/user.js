@@ -1,8 +1,7 @@
 import mongoose from 'mongoose'
-import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
+
 import Post from './post'
-import Constants from '../config/constants'
+import security from '../security'
 
 const Schema = mongoose.Schema
 const UserSchema = new Schema({
@@ -88,23 +87,16 @@ UserSchema
     return password.length >= 6 && password.match(/\d+/g)
   }, 'Password be at least 6 characters long and contain 1 number.')
 
-//
 UserSchema
-  .pre('save', function (done) {
+  .pre('save', async function () {
     // Encrypt password before saving the document
     if (this.isModified('password')) {
-      const { saltRounds } = Constants.security
-      this._hashPassword(this.password, saltRounds, (err, hash) => {
-        if (err) {
-          console.log("🐞:UserSchema.pre('save')._hashPassword", err)
-        }
-        this.password = hash
-        done()
-      })
-    } else {
-      done()
+      const { error, hash } = await security.password.secure(this.password)
+      if (error) {
+        throw new Error("pre 'save' failed")
+      }
+      this.password = hash
     }
-    // eslint-enable no-invalid-this
   })
 
 /**
@@ -121,8 +113,12 @@ UserSchema.methods = {
    * @param {String} password
    * @return {Boolean} passwords match
    */
-  authenticate (password) {
-    return bcrypt.compareSync(password, this.password)
+  async authenticate (password) {
+    const { equable, error } = await security.password.compare(password, this.password)
+    if (error) {
+      throw new Error('unable to authenticate')
+    }
+    return equable
   },
 
   /**
@@ -130,28 +126,18 @@ UserSchema.methods = {
    * @public
    * @return {String} signed JSON web token
    */
-  generateToken () {
+  async generateToken () {
     const payload = {
       _id: this._id,
       username: this.username,
       email: this.email,
       role: this.role
     }
-    return jwt.sign(payload, Constants.security.sessionSecret, {
-      expiresIn: Constants.security.sessionExpiration
-    })
-  },
-
-  /**
-   * Create password hash
-   * @private
-   * @param {String} password
-   * @param {Number} saltRounds
-   * @param {Function} callback
-   * @return {Boolean} passwords match
-   */
-  _hashPassword (password, saltRounds = Constants.security.saltRounds, callback) {
-    return bcrypt.hash(password, saltRounds, callback)
+    const { accessToken, error } = await security.identity.sign(payload)
+    if (error) {
+      throw new Error('unable to generate token')
+    }
+    return accessToken
   }
 }
 

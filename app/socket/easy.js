@@ -1,7 +1,7 @@
 import createSocketIO from 'socket.io'
 import configuration from '@bit/scbj.kush.configuration'
 
-import identity from '../services/identity'
+import security from '../security'
 
 let io = null
 
@@ -71,7 +71,7 @@ async function handleConnection (socket) {
   const { accessToken, extensionId, type } = socket.handshake.query
 
   // Real time needs to authenticate packets otherwise disconnect the socket
-  const { error } = await identity.verify(accessToken)
+  const { error } = await security.identity.verify(accessToken)
   if (error || !extensionId) return socket.disconnect()
 
   switch (type) {
