@@ -6,7 +6,7 @@ class PostController extends BaseController {
     'text'
   ];
 
-   // Middleware to populate post based on url param
+  // Middleware to populate post based on url param
   _populate = async (req, res, next) => {
     const { id } = req.params
 
@@ -31,7 +31,7 @@ class PostController extends BaseController {
     try {
       const posts =
         await Post.find({})
-                  .populate({ path: '_user', select: '-posts -role' })
+          .populate({ path: '_user', select: '-posts -role' })
 
       res.json(posts)
     } catch (err) {
@@ -48,7 +48,7 @@ class PostController extends BaseController {
   }
 
   /**
-   * req.user is populated by middleware in routes.js
+   * req.currentUser is populated by middleware in routes.js
    */
 
   create = async (req, res, next) => {

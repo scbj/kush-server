@@ -26,6 +26,7 @@ routes.delete('/user/me', authenticate, UsersController.delete)
 routes.get('/user/:username', UsersController._populate, UsersController.fetch)
 
 routes.post('/extension', authenticate, ExtensionController.create)
+routes.get('/extension', authenticate, ExtensionController.list)
 
 // Post
 routes.get('/posts', PostsController.search)

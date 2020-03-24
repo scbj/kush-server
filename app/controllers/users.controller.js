@@ -22,7 +22,7 @@ class UsersController extends BaseController {
         return next(err)
       }
 
-      req.user = user
+      req.currentUser = user
       next()
     } catch (err) {
       next(err)
@@ -39,7 +39,7 @@ class UsersController extends BaseController {
   }
 
   fetch = (req, res) => {
-    const user = req.user || req.currentUser
+    const user = req.currentUser
 
     if (!user) {
       return res.sendStatus(404)

@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 
-import Post from './post'
 import security from '../security'
+import { createTransform } from './options'
 
 const Schema = mongoose.Schema
 const UserSchema = new Schema({
@@ -19,7 +19,6 @@ const UserSchema = new Schema({
     required: [true, 'Email is required'],
     validate: {
       validator (email) {
-        // eslint-disable-next-line max-len
         const emailRegex = /^[-a-z0-9%S_+]+(\.[-a-z0-9%S_+]+)*@(?:[a-z0-9-]{1,63}\.){1,125}[a-z]{2,63}$/i
         return emailRegex.test(email)
       },
@@ -38,17 +37,11 @@ const UserSchema = new Schema({
   timestamps: true
 })
 
-// Strip out password field when sending user object to client
-UserSchema.set('toJSON', {
-  virtuals: true,
-  transform (doc, obj) {
-    obj.id = obj._id
-    delete obj._id
-    delete obj.__v
-    delete obj.password
-    return obj
-  }
-})
+UserSchema.set('toJSON', createTransform({
+  __v: 0,
+  _id: 0,
+  password: 0
+}))
 
 // Ensure email has not been taken
 UserSchema
@@ -103,10 +96,6 @@ UserSchema
  * User Methods
  */
 UserSchema.methods = {
-  getPosts () {
-    return Post.find({ _user: this._id })
-  },
-
   /**
    * Authenticate - check if the passwords are the same
    * @public

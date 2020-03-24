@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 
 import { ipAddress, operatingSystem } from './validators'
-import { transformId } from './options'
+import { createTransform } from './options'
 
 // string max length
 const maxLength = 150
@@ -34,7 +34,11 @@ const ExtensionSchema = new Schema({
   timestamps: true
 })
 
-ExtensionSchema.set('toJSON', transformId)
+ExtensionSchema.set('toJSON', createTransform({
+  __v: 0,
+  _id: 0,
+  user_id: 0
+}))
 
 const ExtensionModel = mongoose.model('Extension', ExtensionSchema)
 

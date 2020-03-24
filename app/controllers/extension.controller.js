@@ -27,7 +27,7 @@ class ExtensionController extends BaseController {
     try {
       const extension = await Extension.findOne({
         _id: id,
-        user_id: req.user._id
+        user_id: req.currentUser._id
       })
       if (!extension) {
         return res.sendStatus(404)
@@ -69,8 +69,9 @@ class ExtensionController extends BaseController {
   async list (req, res, next) {
     try {
       const extensions = await Extension.find({
-        user_id: req.user._id
+        user_id: req.currentUser._id
       })
+      console.log('☝️: ExtensionController -> list -> extensions', extensions)
       res.json(extensions)
     } catch (err) {
       next(err)
@@ -87,7 +88,7 @@ class ExtensionController extends BaseController {
     const extension = req.extension
 
     // Ensure the user attempting to delete the extension owns the extension
-    if (!req.user.owns(extension)) {
+    if (!req.currentUser.owns(extension)) {
       return res.sendStatus(404)
     }
     try {
